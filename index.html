@@ -374,6 +374,82 @@
       line-height:1.35;
     }
 
+
+    /* ===== EMPREINTE OFFICIELLE DIGIY ===== */
+    .digiyOfficial{
+      margin-top:16px;
+      display:grid;
+      gap:10px;
+      padding:16px;
+      border-radius:22px;
+      border:1px solid rgba(212,175,55,.34);
+      background:
+        radial-gradient(460px 180px at 0% 0%,rgba(212,175,55,.15),transparent 62%),
+        rgba(0,0,0,.18);
+    }
+
+    .digiyOfficialTop{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+
+    .digiySeal{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:38px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:linear-gradient(135deg,rgba(249,115,22,.20),rgba(212,175,55,.18));
+      border:1px solid rgba(243,212,107,.42);
+      color:#fff7c2;
+      font-size:14px;
+      font-weight:1000;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .digiySeal.green{
+      color:#bbf7d0;
+      border-color:rgba(34,197,94,.34);
+      background:rgba(34,197,94,.12);
+      text-transform:none;
+      letter-spacing:0;
+    }
+
+    .digiyOfficialText{
+      color:#f8fafc;
+      font-size:17px;
+      line-height:1.55;
+      font-weight:900;
+    }
+
+    .digiyOfficialText strong{
+      color:var(--gold2);
+      font-weight:1000;
+    }
+
+    .digiyQrSeal{
+      display:grid;
+      gap:7px;
+      padding:12px;
+      border-radius:18px;
+      border:1px solid rgba(243,212,107,.30);
+      background:rgba(0,0,0,.22);
+      color:#f8fafc;
+      font-size:15px;
+      line-height:1.45;
+      font-weight:900;
+    }
+
+    .digiyQrSeal strong{
+      color:var(--gold2);
+      font-weight:1000;
+    }
+
     .foot{
       margin-top:2px;
       color:var(--muted);
@@ -501,6 +577,8 @@
 
           <div class="chips">
             <span class="chip ok">Contact direct</span>
+            <span class="chip ok">QR officiel DIGIY</span>
+            <span class="chip ok">0% commission</span>
             <span class="chip">Hôtel</span>
             <span class="chip">Résidence</span>
             <span class="chip">Maison</span>
@@ -521,18 +599,35 @@
             <div class="serviceBox"><b>🏠 Maison</b><span>Nettoyage intérieur, cadre propre et sain.</span></div>
             <div class="serviceBox"><b>🧽 Moquettes</b><span>Nettoyage ciblé des tissus, sols et surfaces.</span></div>
           </div>
+
+          <div class="digiyOfficial" aria-label="Empreinte officielle DIGIYLYFE">
+            <div class="digiyOfficialTop">
+              <span class="digiySeal">▣ QR officiel DIGIYLYFE</span>
+              <span class="digiySeal green">Contact direct · 0% commission</span>
+            </div>
+            <div class="digiyOfficialText">
+              Cette fiche est une route directe entre le client et l’agence :
+              activité claire, zone claire, WhatsApp, demande de besoin et partage terrain.
+              <strong>La valeur du business reste dans la main du pro local.</strong>
+            </div>
+          </div>
         </div>
       </main>
 
       <aside class="panel side">
         <article class="qrCard" id="qr" aria-label="QR fiche MANÉ & GNING">
-          <div class="qrKicker">📲 QR fiche</div>
+          <div class="qrKicker">📲 QR officiel DIGIYLYFE</div>
           <a id="qrAnchor" href="https://mane-gning.digiylyfe.com/" target="_blank" rel="noopener">
             <img id="qrImg" class="qrImg" src="data:image/png;base64,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" alt="QR fiche MANÉ & GNING">
           </a>
-          <div class="qrTitle">Scanne le contact</div>
-          <div class="qrText">Ce QR ouvre directement la fiche publique MANÉ & GNING.</div>
-          <div class="qrLink" id="qrLinkText">https://mane-gning.digiylyfe.com/ · QR intégré sans service externe</div>
+          <div class="qrTitle">Scanne la fiche officielle</div>
+          <div class="qrText">Ce QR ouvre directement la fiche officielle MANÉ & GNING : services, zone, contact direct, demande et partage terrain.</div>
+          <div class="digiyQrSeal">
+            <div><strong>Fiche pro terrain · DIGIY BUILD</strong></div>
+            <div>Contact direct · demande directe · 0% commission.</div>
+            <div>La valeur du business reste dans la main du pro local.</div>
+          </div>
+          <div class="qrLink" id="qrLinkText">https://mane-gning.digiylyfe.com/ · QR officiel intégré sans service externe</div>
         </article>
 
         <div class="miniStat">
@@ -570,7 +665,7 @@
     </section>
 
     <div class="foot">
-      DIGIY BUILD • fiche publique • QR fiche intégré • métier clair • secteur • contact direct
+      DIGIY BUILD • fiche publique officielle • QR DIGIY visible • métier clair • secteur • contact direct • demande directe • 0% commission • sans PIN
     </div>
   </div>
 
@@ -603,7 +698,7 @@
       const profileUrl = "https://mane-gning.digiylyfe.com/";
 
       function whatsappUrl(phone){
-        const msg = encodeURIComponent(`Bonjour ${NAME}, je viens de DIGIYLYFE pour votre service : ${TRADE}.`);
+        const msg = encodeURIComponent(`Bonjour ${NAME}, je viens de votre fiche officielle DIGIYLYFE pour votre service : ${TRADE}.`);
         return `https://wa.me/${phone}?text=${msg}`;
       }
 
@@ -621,7 +716,7 @@
           if(navigator.share){
             await navigator.share({
               title:`${NAME} — DIGIY BUILD`,
-              text:`${TRADE} · Saly / Mbour · Contact direct`,
+              text:`${TRADE} · Saly / Mbour · contact direct · 0% commission · QR officiel DIGIYLYFE`,
               url:profileUrl
             });
             return;
