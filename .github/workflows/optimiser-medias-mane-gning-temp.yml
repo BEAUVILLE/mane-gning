@@ -19,49 +19,86 @@ jobs:
       - name: Installer convertisseurs
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y webp libavif-bin
-      - name: Rapatrier et convertir les medias externes
+          sudo apt-get install -y webp libavif-bin imagemagick
+      - name: Rapatrier et convertir les medias
         run: |
           set -euo pipefail
           mkdir -p media
+          POSTER='https://digiylyfe.net/wp-content/uploads/2026/06/1651196a-b062-4fbd-997b-6eb013b21cba.jpeg'
+          LOGO='https://digiylyfe.net/wp-content/uploads/2026/03/digiylyfe_logo_qr.jpeg'
+          curl -fL --max-time 60 --retry 2 "$POSTER" -o media/mane-gning-poster.jpg
+          curl -fL --max-time 60 --retry 2 "$LOGO" -o media/digiylyfe-logo-mane-gning.jpg
+          test -s media/mane-gning-poster.jpg
+          test -s media/digiylyfe-logo-mane-gning.jpg
+
+          # L'original local est conserve. Les derives d'affichage sont limites a 1600 px,
+          # largement au-dessus de la taille rendue dans la fiche.
+          convert media/mane-gning-poster.jpg -resize '1600x1600>' /tmp/mane-display.jpg
+          cwebp -quiet -q 82 /tmp/mane-display.jpg -o media/mane-gning-poster.webp
+          if timeout 90 avifenc --jobs all --min 28 --max 35 --speed 10 /tmp/mane-display.jpg media/mane-gning-poster.avif >/dev/null; then
+            echo 'AVIF poster OK'
+          else
+            rm -f media/mane-gning-poster.avif
+            echo 'AVIF poster ignore: WebP sera servi'
+          fi
+
+          convert media/digiylyfe-logo-mane-gning.jpg -resize '600x600>' /tmp/logo-display.jpg
+          cwebp -quiet -q 82 /tmp/logo-display.jpg -o media/digiylyfe-logo-mane-gning.webp
+          if timeout 45 avifenc --jobs all --min 28 --max 35 --speed 10 /tmp/logo-display.jpg media/digiylyfe-logo-mane-gning.avif >/dev/null; then
+            echo 'AVIF logo OK'
+          else
+            rm -f media/digiylyfe-logo-mane-gning.avif
+            echo 'AVIF logo ignore: WebP sera servi'
+          fi
+
           python3 - <<'PY'
-          import re, pathlib, urllib.request, subprocess
-          p=pathlib.Path('index.html')
+          from pathlib import Path
+          for f in sorted(Path('media').glob('*')):
+              print(f'{f}={f.stat().st_size} bytes')
+          PY
+      - name: Basculer index
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          urls=[]
-          for u in re.findall(r'https://digiylyfe\.net/[^"\'\s)]+?\.(?:jpe?g|png|webp)(?:\?[^"\'\s)]*)?', s, flags=re.I):
-              if u not in urls: urls.append(u)
-          print('URLs media externes:', len(urls))
-          if not urls:
-              raise SystemExit('Aucun media digiylyfe.net trouve')
-          mapping={}
-          for i,u in enumerate(urls,1):
-              clean=u.split('?',1)[0]
-              ext=pathlib.Path(clean).suffix.lower()
-              if ext=='.jpeg': ext='.jpg'
-              orig=pathlib.Path(f'media/mane-gning-{i:02d}{ext}')
-              urllib.request.urlretrieve(u, orig)
-              webp=orig.with_suffix('.webp')
-              avif=orig.with_suffix('.avif')
-              subprocess.run(['cwebp','-quiet','-q','82',str(orig),'-o',str(webp)],check=True)
-              subprocess.run(['avifenc','--min','28','--max','35','--speed','6',str(orig),str(avif)],check=True,stdout=subprocess.DEVNULL)
-              mapping[u]=(orig,webp,avif)
-              print(u, '=>', orig.stat().st_size, webp.stat().st_size, avif.stat().st_size)
-          # Meta OG: conserver un original JPEG/PNG local largement compatible.
-          for u,(orig,webp,avif) in mapping.items():
-              s=s.replace(f'<meta property="og:image" content="{u}">', f'<meta property="og:image" content="https://mane-gning.digiylyfe.com/{orig.as_posix()}">')
-          # Images HTML: picture AVIF/WebP/original.
-          for u,(orig,webp,avif) in mapping.items():
-              pat=re.compile(r'<img(?P<a>[^>]*?)src=["\']'+re.escape(u)+r'["\'](?P<b>[^>]*)>',re.I)
+          poster='https://digiylyfe.net/wp-content/uploads/2026/06/1651196a-b062-4fbd-997b-6eb013b21cba.jpeg'
+          logo='https://digiylyfe.net/wp-content/uploads/2026/03/digiylyfe_logo_qr.jpeg'
+
+          # OG reste en JPEG local, format universel pour les apercus sociaux.
+          s=s.replace(f'<meta property="og:image" content="{poster}">',
+                      '<meta property="og:image" content="https://mane-gning.digiylyfe.com/media/mane-gning-poster.jpg">')
+
+          def picture_for(url, base, fallback, extra=''):
+              nonlocal_dummy = None
+              avif=Path(base+'.avif')
+              sources=''
+              if avif.exists(): sources += f'<source type="image/avif" srcset="./{base}.avif">'
+              sources += f'<source type="image/webp" srcset="./{base}.webp">'
+              pat=re.compile(r'<img(?P<a>[^>]*?)src=["\']'+re.escape(url)+r'["\'](?P<b>[^>]*)>',re.I)
               def repl(m):
                   attrs=(m.group('a')+m.group('b')).strip()
-                  # évite une seconde source src dans les attributs et conserve alt/classes/id.
-                  img=f'<img {attrs} src="./{orig.as_posix()}" decoding="async">'
-                  return f'<picture><source type="image/avif" srcset="./{avif.as_posix()}"><source type="image/webp" srcset="./{webp.as_posix()}">{img}</picture>'
-              s=pat.sub(repl,s)
-          # Tout autre appel externe image (ex. CSS) devient WebP local, plus léger.
-          for u,(orig,webp,avif) in mapping.items():
-              s=s.replace(u, './'+webp.as_posix())
+                  if 'decoding=' not in attrs: attrs += ' decoding="async"'
+                  return f'<picture>{sources}<img {attrs.strip()} src="./{fallback}"></picture>'
+              return pat.sub(repl, s)
+
+          # Application explicite pour ne jamais confondre le poster et le logo.
+          def replace_img(text,url,base,fallback):
+              avif=Path(base+'.avif')
+              sources=(f'<source type="image/avif" srcset="./{base}.avif">' if avif.exists() else '')
+              sources += f'<source type="image/webp" srcset="./{base}.webp">'
+              pat=re.compile(r'<img(?P<a>[^>]*?)src=["\']'+re.escape(url)+r'["\'](?P<b>[^>]*)>',re.I)
+              def repl(m):
+                  attrs=(m.group('a')+m.group('b')).strip()
+                  if 'decoding=' not in attrs: attrs += ' decoding="async"'
+                  return f'<picture>{sources}<img {attrs.strip()} src="./{fallback}"></picture>'
+              return pat.sub(repl,text)
+
+          s=replace_img(s,poster,'media/mane-gning-poster','media/mane-gning-poster.jpg')
+          s=replace_img(s,logo,'media/digiylyfe-logo-mane-gning','media/digiylyfe-logo-mane-gning.jpg')
+          if 'digiylyfe.net/wp-content/uploads' in s:
+              raise SystemExit('Il reste un appel image WordPress non traite')
           p.write_text(s,encoding='utf-8')
           PY
       - name: Publier et nettoyer
