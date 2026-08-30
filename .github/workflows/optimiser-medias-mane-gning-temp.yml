@@ -1,0 +1,75 @@
+name: Optimiser medias Mane Gning temporaire
+
+on:
+  push:
+    paths:
+      - '.github/workflows/optimiser-medias-mane-gning-temp.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  optimiser:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Installer convertisseurs
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y webp libavif-bin
+      - name: Rapatrier et convertir les medias externes
+        run: |
+          set -euo pipefail
+          mkdir -p media
+          python3 - <<'PY'
+          import re, pathlib, urllib.request, subprocess
+          p=pathlib.Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          urls=[]
+          for u in re.findall(r'https://digiylyfe\.net/[^"\'\s)]+?\.(?:jpe?g|png|webp)(?:\?[^"\'\s)]*)?', s, flags=re.I):
+              if u not in urls: urls.append(u)
+          print('URLs media externes:', len(urls))
+          if not urls:
+              raise SystemExit('Aucun media digiylyfe.net trouve')
+          mapping={}
+          for i,u in enumerate(urls,1):
+              clean=u.split('?',1)[0]
+              ext=pathlib.Path(clean).suffix.lower()
+              if ext=='.jpeg': ext='.jpg'
+              orig=pathlib.Path(f'media/mane-gning-{i:02d}{ext}')
+              urllib.request.urlretrieve(u, orig)
+              webp=orig.with_suffix('.webp')
+              avif=orig.with_suffix('.avif')
+              subprocess.run(['cwebp','-quiet','-q','82',str(orig),'-o',str(webp)],check=True)
+              subprocess.run(['avifenc','--min','28','--max','35','--speed','6',str(orig),str(avif)],check=True,stdout=subprocess.DEVNULL)
+              mapping[u]=(orig,webp,avif)
+              print(u, '=>', orig.stat().st_size, webp.stat().st_size, avif.stat().st_size)
+          # Meta OG: conserver un original JPEG/PNG local largement compatible.
+          for u,(orig,webp,avif) in mapping.items():
+              s=s.replace(f'<meta property="og:image" content="{u}">', f'<meta property="og:image" content="https://mane-gning.digiylyfe.com/{orig.as_posix()}">')
+          # Images HTML: picture AVIF/WebP/original.
+          for u,(orig,webp,avif) in mapping.items():
+              pat=re.compile(r'<img(?P<a>[^>]*?)src=["\']'+re.escape(u)+r'["\'](?P<b>[^>]*)>',re.I)
+              def repl(m):
+                  attrs=(m.group('a')+m.group('b')).strip()
+                  # évite une seconde source src dans les attributs et conserve alt/classes/id.
+                  img=f'<img {attrs} src="./{orig.as_posix()}" decoding="async">'
+                  return f'<picture><source type="image/avif" srcset="./{avif.as_posix()}"><source type="image/webp" srcset="./{webp.as_posix()}">{img}</picture>'
+              s=pat.sub(repl,s)
+          # Tout autre appel externe image (ex. CSS) devient WebP local, plus léger.
+          for u,(orig,webp,avif) in mapping.items():
+              s=s.replace(u, './'+webp.as_posix())
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Publier et nettoyer
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/optimiser-medias-mane-gning-temp.yml
+          git config user.name 'DIGIYLYFE Media Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html media .github/workflows/optimiser-medias-mane-gning-temp.yml
+          git commit -m 'Media: optimiser Mane et Gning'
+          git push origin main
