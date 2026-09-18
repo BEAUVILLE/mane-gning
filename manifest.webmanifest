@@ -1,0 +1,21 @@
+{
+  "name": "MANÉ & GNING",
+  "short_name": "MANÉ & GNING",
+  "description": "MANÉ & GNING · présence professionnelle propulsée par DIGIYLYFE",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07150f",
+  "theme_color": "#126b43",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/media/digiylyfe-logo-mane-gning.jpg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
