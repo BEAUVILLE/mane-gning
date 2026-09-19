@@ -549,6 +549,7 @@
     <meta name="apple-mobile-web-app-title" content="MANÉ & GNING">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+<style id="digiy-owner-web-only">@media (display-mode: standalone){#ownerAccessBtn{display:none!important}}</style>
 </head>
 
 <body>
@@ -666,7 +667,7 @@
           <a id="waBtn2" class="btn green" href="#">💬 WhatsApp 77 451 35 23</a>
           <a class="btn secondary" href="https://build.digiylyfe.com/request.html?slug=mane-gning-nettoyage&nom=MANE%20%26%20GNING&metier=Nettoyage&ville=Saly%20Mbour">📄 Décrire mon besoin</a>
           <button class="btn secondary" id="copyBtn" type="button">📋 Copier la fiche</button>
-          <button class="btn green" id="shareBtn" type="button">📤 Partager</button>
+          <button class="btn green" id="shareBtn" type="button">📤 Partager</button><a class="btn secondary" id="ownerAccessBtn" href="https://build.digiylyfe.com/acces-proprietaire-v2.html?site=mane-gning-nettoyage" rel="nofollow">🔐 Accès propriétaire</a>
         </div>
       </aside>
     </section>
@@ -757,5 +758,6 @@
 window.DIGIY_MEMBER_PWA={enabled:true,name:"MANÉ & GNING",finalUrl:"https://mane-gning.digiylyfe.com/",manifestUrl:"/manifest.webmanifest?v=20260918-member-v1",iconUrl:"/media/digiylyfe-logo-mane-gning.jpg"};
 </script>
 <script src="https://digiylyfe.com/assets/digiy-member-pwa-v1.js?v=20260918-v1"></script>
+<script>(function(){var p=((window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true);var e=document.getElementById('ownerAccessBtn');if(p&&e){e.hidden=true;e.style.display='none'}})();</script>
 </body>
 </html>
